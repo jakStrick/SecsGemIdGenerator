@@ -1,0 +1,87 @@
+
+
+@page "/secsgem/id-generator"
+@model Solstice.Pages.SecsGem.IdGeneratorModel
+@{ ViewData["Title"] = "SECS/GEM ID Generator"; }
+
+<h1 class="mb-3">SECS/GEM ID Generator — Solstice</h1>
+<p class="text-muted">
+  Generates a CSV master list of all SEMI-standard IDs (E5/E30/E37/E40/E87/E90/E94/E116)
+  for the Solstice tool. Adjust ranges and topology, preview, then download.
+</p>
+
+<form method="post">
+  <div class="row g-3">
+    <div class="col-md-3">
+      <label class="form-label">Load Ports</label>
+      <input class="form-control" type="number" min="1" max="4"
+             asp-for="Config.LoadPortCount" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">Process Chambers</label>
+      <input class="form-control" type="number" min="1" max="8"
+             asp-for="Config.ProcessChamberCount" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">SVID Start (System)</label>
+      <input class="form-control" type="number" asp-for="Config.SvidSystemStart" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">ECID Start</label>
+      <input class="form-control" type="number" asp-for="Config.EcidStart" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">CEID Start</label>
+      <input class="form-control" type="number" asp-for="Config.CeidStart" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">ALID Start</label>
+      <input class="form-control" type="number" asp-for="Config.AlidStart" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">DVID Start</label>
+      <input class="form-control" type="number" asp-for="Config.DvidStart" />
+    </div>
+    <div class="col-md-3">
+      <label class="form-label">RPTID Start</label>
+      <input class="form-control" type="number" asp-for="Config.RptidStart" />
+    </div>
+  </div>
+
+  <div class="mt-3 d-flex gap-2">
+    <button class="btn btn-outline-primary" formaction="?handler=Preview">Preview</button>
+    <button class="btn btn-primary"          formaction="?handler=Download">Download CSV</button>
+    <button class="btn btn-success"          formaction="?handler=DownloadJson">Download JSON</button>
+  </div>
+</form>
+
+@if (Model.Preview is not null)
+{
+    <hr />
+    <h2>Preview — @Model.Preview.Count rows</h2>
+    <div class="table-responsive" style="max-height:60vh;">
+      <table class="table table-sm table-striped">
+        <thead><tr>
+          <th>Type</th><th>Id</th><th>Name</th><th>DataType</th>
+          <th>Units</th><th>Standard</th><th>Subsystem</th><th>Description</th>
+        </tr></thead>
+        <tbody>
+        @foreach (var r in Model.Preview)
+        {
+          <tr>
+            <td>@r.IdType</td>
+            <td>@r.IdNumber</td>
+            <td><code>@r.Name</code></td>
+            <td>@r.DataType</td>
+            <td>@r.Units</td>
+            <td>@r.SemiStandard</td>
+            <td>@r.Subsystem</td>
+            <td>@r.Description</td>
+          </tr>
+        }
+        </tbody>
+      </table>
+    </div>
+}
+
+#endregion
