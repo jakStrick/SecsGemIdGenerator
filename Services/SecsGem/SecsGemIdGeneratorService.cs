@@ -27,11 +27,11 @@ public sealed class SecsGemIdGeneratorService
         AddDvids(list, cfg);                // Reportable data variables
         AddRptids(list, cfg);               // Default report skeletons
 
-        AddE40Examples(list);               // PRJobID (process job)
-        AddE94Examples(list);               // ControlJobID
+        AddE40Examples(list, cfg);           // PRJobID (process job)
+        AddE94Examples(list, cfg);           // ControlJobID
         AddE87Examples(list, cfg);          // CarrierID, PortID, AccessMode
-        AddE90Examples(list);               // SubstrateID
-        AddE116States(list);                // EPT state mapping (informational rows)
+        AddE90Examples(list, cfg);           // SubstrateID
+        AddE116States(list, cfg);            // EPT state mapping (informational rows)
 
         return list;
     }
@@ -41,10 +41,11 @@ public sealed class SecsGemIdGeneratorService
     private static void AddGemStandardSvids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         uint id = cfg.SvidSystemStart;
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
         void Add(string name, string desc, string type, string units = "")
             => list.Add(new SecsGemIdEntry {
                 IdType="SVID", IdNumber=id++, Name=name, Description=desc,
-                DataType=type, Units=units, SemiStandard="E30", Subsystem="System"
+                DataType=type, Units=units, SemiStandard="E30", Subsystem=Pfx("System")
             });
 
         Add("Clock",                "Equipment clock, format A[16]: YYYYMMDDhhmmsscc", "A:16");
@@ -64,13 +65,14 @@ public sealed class SecsGemIdGeneratorService
     private static void AddSystemSvids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         uint id = cfg.SvidSystemStart + 100;
-        SV("EquipmentModel",     "Solstice model identifier",     "A:32", "", "System");
-        SV("EquipmentSerialNum", "Solstice serial number",        "A:32", "", "System");
-        SV("SoftwareRevision",   "Equipment SW revision string",  "A:32", "", "System");
-        SV("ProcessProgramDir",  "Active recipe directory path",  "A:120","", "System");
-        SV("EmoStatus",          "Emergency Off button state",    "BOOLEAN","",  "System");
-        SV("DoorInterlocks",     "Bitmap of door interlock states","U4",  "",   "System");
-        SV("UpsOnBattery",       "UPS running on battery",        "BOOLEAN","",  "System");
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
+        SV("EquipmentModel",     "Solstice model identifier",     "A:32", "", Pfx("System"));
+        SV("EquipmentSerialNum", "Solstice serial number",        "A:32", "", Pfx("System"));
+        SV("SoftwareRevision",   "Equipment SW revision string",  "A:32", "", Pfx("System"));
+        SV("ProcessProgramDir",  "Active recipe directory path",  "A:120","", Pfx("System"));
+        SV("EmoStatus",          "Emergency Off button state",    "BOOLEAN","",  Pfx("System"));
+        SV("DoorInterlocks",     "Bitmap of door interlock states","U4",  "",   Pfx("System"));
+        SV("UpsOnBattery",       "UPS running on battery",        "BOOLEAN","",  Pfx("System"));
 
         void SV(string n, string d, string t, string u, string s)
             => list.Add(new SecsGemIdEntry {
@@ -82,10 +84,11 @@ public sealed class SecsGemIdGeneratorService
     private static void AddEfemSvids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         uint id = cfg.SvidEfemStart;
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
         void SV(string n, string d, string t, string u = "")
             => list.Add(new SecsGemIdEntry {
                 IdType="SVID", IdNumber=id++, Name=n, Description=d,
-                DataType=t, Units=u, SemiStandard="E5", Subsystem="EFEM"
+                DataType=t, Units=u, SemiStandard="E5", Subsystem=Pfx("EFEM")
             });
 
         SV("EfemRobotState",       "Idle/Moving/Error",        "U1");
@@ -101,10 +104,11 @@ public sealed class SecsGemIdGeneratorService
 
     private static void AddLoadPortSvids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
         for (int p = 1; p <= cfg.LoadPortCount; p++)
         {
             uint id = (uint)(cfg.SvidLoadPortStart + (p - 1) * 1000);
-            string ss = $"LP{p}";
+            string ss = Pfx($"LP{p}");
             void SV(string n, string d, string t, string u = "")
                 => list.Add(new SecsGemIdEntry {
                     IdType="SVID", IdNumber=id++, Name=$"LP{p}_{n}", Description=d,
@@ -133,6 +137,7 @@ public sealed class SecsGemIdGeneratorService
 
     private static void AddProcessChamberSvids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
         for (int c = 0; c < cfg.ProcessChamberCount; c++)
         {
             string name = c < cfg.ChamberNames.Length ? cfg.ChamberNames[c] : $"PM{c+1}";
@@ -140,7 +145,7 @@ public sealed class SecsGemIdGeneratorService
             void SV(string n, string d, string t, string u = "")
                 => list.Add(new SecsGemIdEntry {
                     IdType="SVID", IdNumber=id++, Name=$"{name}_{n}", Description=d,
-                    DataType=t, Units=u, SemiStandard="E5", Subsystem=name
+                    DataType=t, Units=u, SemiStandard="E5", Subsystem=Pfx(name)
                 });
 
             // Common to every wet PM
@@ -191,10 +196,11 @@ public sealed class SecsGemIdGeneratorService
     private static void AddUtilitiesSvids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         uint id = cfg.SvidUtilitiesStart;
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
         void SV(string n, string d, string t, string u = "")
             => list.Add(new SecsGemIdEntry {
                 IdType="SVID", IdNumber=id++, Name=n, Description=d,
-                DataType=t, Units=u, SemiStandard="E5", Subsystem="Utilities"
+                DataType=t, Units=u, SemiStandard="E5", Subsystem=Pfx("Utilities")
             });
 
         SV("DiwSupplyPressure",  "DI water supply pressure",        "F4", "kPa");
@@ -211,11 +217,12 @@ public sealed class SecsGemIdGeneratorService
     private static void AddEcids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         uint id = cfg.EcidStart;
-        void EC(string n, string d, string t, string min, string max, string def, string u = "", string ss = "System")
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
+        void EC(string n, string d, string t, string min, string max, string def, string u = "", string? ss = null)
             => list.Add(new SecsGemIdEntry {
                 IdType="ECID", IdNumber=id++, Name=n, Description=d, DataType=t,
                 MinValue=min, MaxValue=max, DefaultValue=def, Units=u,
-                SemiStandard="E30", Subsystem=ss
+                SemiStandard="E30", Subsystem=ss ?? Pfx("System")
             });
 
         // GEM standard ECs
@@ -228,72 +235,73 @@ public sealed class SecsGemIdGeneratorService
         EC("DefaultCommState",               "Power-on comm state",                   "U1", "0",   "1",    "1");
 
         // Tool-specific
-        EC("MaxRecipeSize",          "Max recipe file size",            "U4","1024","10485760","1048576","bytes","System");
-        EC("AlarmCsvLogPath",        "Alarm log path",                  "A:120","","","C:\\Logs\\Alarms\\","","System");
-        EC("DefaultBathTempSetpoint","Default plating bath setpoint",   "F4","15","45","25","degC","Plating");
-        EC("PlatingCurrentLimit",    "Maximum plating current allowed", "F4","0","200","100","A","Plating");
-        EC("MaxSpinRpm",             "SRD spin RPM ceiling",            "U2","0","3000","2000","RPM","SRD");
-        EC("DiwResistivityMin",      "Minimum acceptable DIW resistivity","F4","0","18","17","MOhm-cm","Utilities");
+        EC("MaxRecipeSize",          "Max recipe file size",            "U4","1024","10485760","1048576","bytes",Pfx("System"));
+        EC("AlarmCsvLogPath",        "Alarm log path",                  "A:120","","","C:\\Logs\\Alarms\\","",Pfx("System"));
+        EC("DefaultBathTempSetpoint","Default plating bath setpoint",   "F4","15","45","25","degC",Pfx("Plating"));
+        EC("PlatingCurrentLimit",    "Maximum plating current allowed", "F4","0","200","100","A",Pfx("Plating"));
+        EC("MaxSpinRpm",             "SRD spin RPM ceiling",            "U2","0","3000","2000","RPM",Pfx("SRD"));
+        EC("DiwResistivityMin",      "Minimum acceptable DIW resistivity","F4","0","18","17","MOhm-cm",Pfx("Utilities"));
     }
 
     // -------- CEIDs ---------------------------------------------------------
     private static void AddCeids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         uint id = cfg.CeidStart;
-        void CE(string n, string d, string ss = "System")
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
+        void CE(string n, string d, string? ss = null)
             => list.Add(new SecsGemIdEntry {
                 IdType="CEID", IdNumber=id++, Name=n, Description=d,
-                SemiStandard="E30", Subsystem=ss, DataType="—"
+                SemiStandard="E30", Subsystem=ss ?? Pfx("System"), DataType="—"
             });
 
         // E30 lifecycle
-        CE("OperatorEquipmentConstantChange", "Operator changed an EC",       "System");
-        CE("OperatorCommandIssued",           "Operator issued a remote cmd", "System");
-        CE("ControlStateLocal",               "Transition to LOCAL",          "System");
-        CE("ControlStateRemote",              "Transition to REMOTE",         "System");
-        CE("ControlStateOffline",             "Transition to OFFLINE",        "System");
-        CE("CommEstablished",                 "S1F13/F14 succeeded",          "System");
-        CE("MaterialReceived",                "Carrier or wafer received",    "EFEM");
-        CE("MaterialRemoved",                 "Material removed",             "EFEM");
-        CE("PpChangeEvent",                   "Process program changed",      "System");
-        CE("AlarmDetected",                   "Any alarm set",                "System");
-        CE("AlarmCleared",                    "Any alarm cleared",            "System");
+        CE("OperatorEquipmentConstantChange", "Operator changed an EC");
+        CE("OperatorCommandIssued",           "Operator issued a remote cmd");
+        CE("ControlStateLocal",               "Transition to LOCAL");
+        CE("ControlStateRemote",              "Transition to REMOTE");
+        CE("ControlStateOffline",             "Transition to OFFLINE");
+        CE("CommEstablished",                 "S1F13/F14 succeeded");
+        CE("MaterialReceived",                "Carrier or wafer received",    Pfx("EFEM"));
+        CE("MaterialRemoved",                 "Material removed",             Pfx("EFEM"));
+        CE("PpChangeEvent",                   "Process program changed");
+        CE("AlarmDetected",                   "Any alarm set");
+        CE("AlarmCleared",                    "Any alarm cleared");
 
         // E40 process job
-        CE("PrJobCreated",   "Process job created (S16F11)", "ProcessJob");
-        CE("PrJobSetup",     "Process job entered SETUP",    "ProcessJob");
-        CE("PrJobProcessing","Process job PROCESSING",       "ProcessJob");
-        CE("PrJobPaused",    "Process job PAUSED",           "ProcessJob");
-        CE("PrJobCompleted", "Process job COMPLETED",        "ProcessJob");
-        CE("PrJobAborted",   "Process job ABORTED",          "ProcessJob");
+        CE("PrJobCreated",   "Process job created (S16F11)", Pfx("ProcessJob"));
+        CE("PrJobSetup",     "Process job entered SETUP",    Pfx("ProcessJob"));
+        CE("PrJobProcessing","Process job PROCESSING",       Pfx("ProcessJob"));
+        CE("PrJobPaused",    "Process job PAUSED",           Pfx("ProcessJob"));
+        CE("PrJobCompleted", "Process job COMPLETED",        Pfx("ProcessJob"));
+        CE("PrJobAborted",   "Process job ABORTED",          Pfx("ProcessJob"));
 
         // E94 control job
-        CE("CtrlJobCreated",  "Control job created", "ControlJob");
-        CE("CtrlJobExecuting","Control job EXECUTING","ControlJob");
-        CE("CtrlJobCompleted","Control job COMPLETED","ControlJob");
+        CE("CtrlJobCreated",  "Control job created", Pfx("ControlJob"));
+        CE("CtrlJobExecuting","Control job EXECUTING",Pfx("ControlJob"));
+        CE("CtrlJobCompleted","Control job COMPLETED",Pfx("ControlJob"));
 
         // E87 carrier
-        CE("CarrierArrived",         "Carrier placed at port",          "Carrier");
-        CE("CarrierIdRead",          "Carrier ID read OK",              "Carrier");
-        CE("CarrierIdReadFail",      "Carrier ID read failed",          "Carrier");
-        CE("SlotMapAcquired",        "Slot map complete",               "Carrier");
-        CE("CarrierClosed",          "FOUP door closed",                "Carrier");
-        CE("CarrierDeparted",        "Carrier removed from port",       "Carrier");
+        CE("CarrierArrived",         "Carrier placed at port",          Pfx("Carrier"));
+        CE("CarrierIdRead",          "Carrier ID read OK",              Pfx("Carrier"));
+        CE("CarrierIdReadFail",      "Carrier ID read failed",          Pfx("Carrier"));
+        CE("SlotMapAcquired",        "Slot map complete",               Pfx("Carrier"));
+        CE("CarrierClosed",          "FOUP door closed",                Pfx("Carrier"));
+        CE("CarrierDeparted",        "Carrier removed from port",       Pfx("Carrier"));
 
         // E90 substrate
-        CE("SubstrateAcquired",  "Wafer acquired by EFEM robot",   "Substrate");
-        CE("SubstrateAtSource",  "Wafer at source location",       "Substrate");
-        CE("SubstrateAtDest",    "Wafer at destination location",  "Substrate");
-        CE("SubstrateProcessed", "Wafer processing complete",      "Substrate");
+        CE("SubstrateAcquired",  "Wafer acquired by EFEM robot",   Pfx("Substrate"));
+        CE("SubstrateAtSource",  "Wafer at source location",       Pfx("Substrate"));
+        CE("SubstrateAtDest",    "Wafer at destination location",  Pfx("Substrate"));
+        CE("SubstrateProcessed", "Wafer processing complete",      Pfx("Substrate"));
 
         // Tool-specific (per chamber)
         for (int c = 0; c < cfg.ProcessChamberCount; c++)
         {
             string n = c < cfg.ChamberNames.Length ? cfg.ChamberNames[c] : $"PM{c+1}";
-            CE($"{n}_ProcessStarted",  $"{n} processing started",  n);
-            CE($"{n}_ProcessComplete", $"{n} processing complete", n);
-            CE($"{n}_StepChanged",     $"{n} recipe step changed", n);
-            CE($"{n}_RecipeChanged",   $"{n} recipe changed",      n);
+            CE($"{n}_ProcessStarted",  $"{n} processing started",  Pfx(n));
+            CE($"{n}_ProcessComplete", $"{n} processing complete", Pfx(n));
+            CE($"{n}_StepChanged",     $"{n} recipe step changed", Pfx(n));
+            CE($"{n}_RecipeChanged",   $"{n} recipe changed",      Pfx(n));
         }
     }
 
@@ -301,47 +309,48 @@ public sealed class SecsGemIdGeneratorService
     private static void AddAlids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         uint id = cfg.AlidStart;
-        void AL(string n, string d, string ss)
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
+        void AL(string n, string d, string ss, string alarmCode = "EquipmentStatusWarning")
             => list.Add(new SecsGemIdEntry {
                 IdType="ALID", IdNumber=id++, Name=n, Description=d,
-                SemiStandard="E30", Subsystem=ss, DataType="A:120"
+                SemiStandard="E30", Subsystem=ss, DataType="A:120", AlarmCode=alarmCode
             });
 
         // System
-        AL("EmoPressed",                "Emergency Off pressed",                 "System");
-        AL("DoorInterlockOpen",         "A door interlock opened during process","System");
-        AL("UpsOnBattery",              "UPS switched to battery power",         "System");
-        AL("CommunicationLost",         "HSMS link lost",                        "System");
-        AL("SpoolFull",                 "Message spool full",                    "System");
-        AL("SpoolOverflow",             "Spool overflow — messages discarded",   "System");
+        AL("EmoPressed",                "Emergency Off pressed",                 Pfx("System"), "PersonalSafetyAlarm");
+        AL("DoorInterlockOpen",         "A door interlock opened during process",Pfx("System"), "PersonalSafetyAlarm");
+        AL("UpsOnBattery",              "UPS switched to battery power",         Pfx("System"));
+        AL("CommunicationLost",         "HSMS link lost",                        Pfx("System"));
+        AL("SpoolFull",                 "Message spool full",                    Pfx("System"));
+        AL("SpoolOverflow",             "Spool overflow — messages discarded",   Pfx("System"));
 
         // Utilities
-        AL("DiwLowPressure",            "DI water supply low pressure",          "Utilities");
-        AL("DiwLowResistivity",         "DI water resistivity below limit",      "Utilities");
-        AL("CdaLowPressure",            "Clean dry air low pressure",            "Utilities");
-        AL("N2LowPressure",             "N2 low pressure",                       "Utilities");
-        AL("ExhaustLowFlow",            "Exhaust flow below limit",              "Utilities");
-        AL("DrainLeakDetected",         "Liquid leak in drain pan",              "Utilities");
-        AL("ChillerFault",              "Process chiller fault",                 "Utilities");
+        AL("DiwLowPressure",            "DI water supply low pressure",          Pfx("Utilities"));
+        AL("DiwLowResistivity",         "DI water resistivity below limit",      Pfx("Utilities"));
+        AL("CdaLowPressure",            "Clean dry air low pressure",            Pfx("Utilities"));
+        AL("N2LowPressure",             "N2 low pressure",                       Pfx("Utilities"));
+        AL("ExhaustLowFlow",            "Exhaust flow below limit",              Pfx("Utilities"));
+        AL("DrainLeakDetected",         "Liquid leak in drain pan",              Pfx("Utilities"));
+        AL("ChillerFault",              "Process chiller fault",                 Pfx("Utilities"));
 
         // EFEM
-        AL("EfemRobotFault",            "EFEM robot fault",                      "EFEM");
-        AL("EfemAlignerFault",          "Aligner fault",                         "EFEM");
-        AL("EfemFfuLow",                "FFU below minimum RPM",                 "EFEM");
+        AL("EfemRobotFault",            "EFEM robot fault",                      Pfx("EFEM"));
+        AL("EfemAlignerFault",          "Aligner fault",                         Pfx("EFEM"));
+        AL("EfemFfuLow",                "FFU below minimum RPM",                 Pfx("EFEM"));
 
         // Per chamber
         for (int c = 0; c < cfg.ProcessChamberCount; c++)
         {
             string n = c < cfg.ChamberNames.Length ? cfg.ChamberNames[c] : $"PM{c+1}";
-            AL($"{n}_TempOutOfRange",       $"{n} bath temperature out of range",   n);
-            AL($"{n}_LevelLow",             $"{n} bath/tank level low",             n);
-            AL($"{n}_PumpFault",            $"{n} recirc pump fault",               n);
-            AL($"{n}_FilterDpHigh",         $"{n} filter DP exceeds limit",         n);
-            AL($"{n}_RecipeAbort",          $"{n} recipe aborted",                  n);
+            AL($"{n}_TempOutOfRange",       $"{n} bath temperature out of range",   Pfx(n));
+            AL($"{n}_LevelLow",             $"{n} bath/tank level low",             Pfx(n));
+            AL($"{n}_PumpFault",            $"{n} recirc pump fault",               Pfx(n));
+            AL($"{n}_FilterDpHigh",         $"{n} filter DP exceeds limit",         Pfx(n));
+            AL($"{n}_RecipeAbort",          $"{n} recipe aborted",                  Pfx(n));
             if (n.Contains("Plate", StringComparison.OrdinalIgnoreCase))
             {
-                AL($"{n}_AnodeOverCurrent", $"{n} anode current exceeded limit",    n);
-                AL($"{n}_RectifierFault",   $"{n} plating rectifier fault",         n);
+                AL($"{n}_AnodeOverCurrent", $"{n} anode current exceeded limit",    Pfx(n));
+                AL($"{n}_RectifierFault",   $"{n} plating rectifier fault",         Pfx(n));
             }
         }
     }
@@ -350,10 +359,11 @@ public sealed class SecsGemIdGeneratorService
     private static void AddDvids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         uint id = cfg.DvidStart;
-        void DV(string n, string d, string t, string ss = "System", string u = "")
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
+        void DV(string n, string d, string t, string? ss = null, string u = "")
             => list.Add(new SecsGemIdEntry {
                 IdType="DVID", IdNumber=id++, Name=n, Description=d,
-                DataType=t, Units=u, SemiStandard="E5", Subsystem=ss,
+                DataType=t, Units=u, SemiStandard="E5", Subsystem=ss ?? Pfx("System"),
                 ReportableInDvvalList=true
             });
 
@@ -361,14 +371,14 @@ public sealed class SecsGemIdGeneratorService
         DV("AlarmText",          "Alarm text snapshot",                "A:120");
         DV("PpChangeName",       "Recipe name in PP change event",     "A:80");
         DV("PpChangeStatus",     "Recipe change status code",          "U1");
-        DV("CarrierId",          "CarrierID for E87 events",           "A:32",  "Carrier");
-        DV("PortId",             "Port number for E87 events",         "U1",    "Carrier");
-        DV("SubstrateId",        "SubstrateID for E90 events",         "A:32",  "Substrate");
-        DV("PrJobId",            "ProcessJob ID for E40 events",       "A:32",  "ProcessJob");
-        DV("CtrlJobId",          "ControlJob ID for E94 events",       "A:32",  "ControlJob");
+        DV("CarrierId",          "CarrierID for E87 events",           "A:32",  Pfx("Carrier"));
+        DV("PortId",             "Port number for E87 events",         "U1",    Pfx("Carrier"));
+        DV("SubstrateId",        "SubstrateID for E90 events",         "A:32",  Pfx("Substrate"));
+        DV("PrJobId",            "ProcessJob ID for E40 events",       "A:32",  Pfx("ProcessJob"));
+        DV("CtrlJobId",          "ControlJob ID for E94 events",       "A:32",  Pfx("ControlJob"));
         DV("ProcessResultCode",  "0=Pass, 1..n = fail reason",         "U2");
         DV("RecipeStepNumber",   "Step at which event occurred",       "U2");
-        DV("WaferProcessTime",   "Total seconds spent processing",     "F4", "System", "s");
+        DV("WaferProcessTime",   "Total seconds spent processing",     "F4", Pfx("System"), "s");
     }
 
     // -------- RPTIDs --------------------------------------------------------
@@ -376,10 +386,11 @@ public sealed class SecsGemIdGeneratorService
     private static void AddRptids(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         uint id = cfg.RptidStart;
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
         void RP(string n, string d)
             => list.Add(new SecsGemIdEntry {
                 IdType="RPTID", IdNumber=id++, Name=n, Description=d,
-                SemiStandard="E30", Subsystem="Reporting", DataType="L"
+                SemiStandard="E30", Subsystem=Pfx("Reporting"), DataType="L"
             });
 
         RP("AlarmReport",     "ALID + AlarmText + Clock");
@@ -392,23 +403,25 @@ public sealed class SecsGemIdGeneratorService
     }
 
     // -------- E40 Process Job placeholders ---------------------------------
-    private static void AddE40Examples(List<SecsGemIdEntry> list)
+    private static void AddE40Examples(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         list.Add(new SecsGemIdEntry {
             IdType="PRJobID", IdNumber=null, Name="PRJ-{yyyyMMdd}-{seq:0000}",
             Description="Process job identifier — formatted A:n string per E40 §6",
-            DataType="A:32", SemiStandard="E40", Subsystem="ProcessJob",
+            DataType="A:32", SemiStandard="E40",
+            Subsystem=$"Solstice.ProcessChambers({cfg.ProcessChamberCount}).ProcessJob",
             Notes="Generated at job creation. Globally unique within the equipment."
         });
     }
 
     // -------- E94 Control Job placeholders ---------------------------------
-    private static void AddE94Examples(List<SecsGemIdEntry> list)
+    private static void AddE94Examples(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         list.Add(new SecsGemIdEntry {
             IdType="ControlJobID", IdNumber=null, Name="CJ-{yyyyMMdd}-{seq:0000}",
             Description="Control job identifier per E94 §6",
-            DataType="A:32", SemiStandard="E94", Subsystem="ControlJob",
+            DataType="A:32", SemiStandard="E94",
+            Subsystem=$"Solstice.ProcessChambers({cfg.ProcessChamberCount}).ControlJob",
             Notes="Created by host or operator. Owns 1..n PRJobIDs."
         });
     }
@@ -416,32 +429,35 @@ public sealed class SecsGemIdGeneratorService
     // -------- E87 Carrier placeholders -------------------------------------
     private static void AddE87Examples(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
+        string Pfx(string sub) => $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).{sub}";
         list.Add(new SecsGemIdEntry {
             IdType="CarrierID", IdNumber=null, Name="<read-from-RFID>",
             Description="A:n carrier identifier read by load port reader",
-            DataType="A:32", SemiStandard="E87", Subsystem="Carrier"
+            DataType="A:32", SemiStandard="E87", Subsystem=Pfx("Carrier")
         });
         for (int p = 1; p <= cfg.LoadPortCount; p++)
             list.Add(new SecsGemIdEntry {
                 IdType="PortID", IdNumber=(uint)p, Name=$"LoadPort{p}",
                 Description="Physical port index per E87",
-                DataType="U1", SemiStandard="E87", Subsystem=$"LP{p}"
+                DataType="U1", SemiStandard="E87", Subsystem=Pfx($"LP{p}")
             });
     }
 
     // -------- E90 Substrate placeholders -----------------------------------
-    private static void AddE90Examples(List<SecsGemIdEntry> list)
+    private static void AddE90Examples(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
         list.Add(new SecsGemIdEntry {
             IdType="SubstrateID", IdNumber=null, Name="<host-supplied or auto>",
             Description="Substrate identifier per E90 §7. Must be unique while substrate is on the equipment.",
-            DataType="A:32", SemiStandard="E90", Subsystem="Substrate"
+            DataType="A:32", SemiStandard="E90",
+            Subsystem=$"Solstice.ProcessChambers({cfg.ProcessChamberCount}).Substrate"
         });
     }
 
     // -------- E116 EPT informational mapping --------------------------------
-    private static void AddE116States(List<SecsGemIdEntry> list)
+    private static void AddE116States(List<SecsGemIdEntry> list, IdRangeConfig cfg)
     {
+        string ss = $"Solstice.ProcessChambers({cfg.ProcessChamberCount}).EPT";
         var states = new (uint id, string name, string desc)[] {
             (1, "NotScheduled",      "Equipment not scheduled to operate"),
             (2, "ScheduledDowntime", "Planned maintenance"),
@@ -453,7 +469,7 @@ public sealed class SecsGemIdGeneratorService
         foreach (var (id, name, desc) in states)
             list.Add(new SecsGemIdEntry {
                 IdType="E116State", IdNumber=id, Name=name, Description=desc,
-                DataType="U1", SemiStandard="E116", Subsystem="EPT"
+                DataType="U1", SemiStandard="E116", Subsystem=ss
             });
     }
 
@@ -461,10 +477,11 @@ public sealed class SecsGemIdGeneratorService
     public string ToCsv(IEnumerable<SecsGemIdEntry> rows)
     {
         var sb = new StringBuilder();
-        sb.AppendLine("IdType,IdNumber,Name,Description,DataType,Units,DefaultValue,MinValue,MaxValue,SemiStandard,Subsystem,ReportableInDvvalList,Notes");
+        sb.AppendLine("Subsystem,IdType,IdNumber,Name,Description,DataType,Units,DefaultValue,MinValue,MaxValue,SemiStandard,ReportableInDvvalList,Notes,AlarmCode");
         foreach (var r in rows)
         {
-            sb.Append(Esc(r.IdType)).Append(',')
+            sb.Append(Esc(r.Subsystem)).Append(',')
+              .Append(Esc(r.IdType)).Append(',')
               .Append(r.IdNumber?.ToString(CultureInfo.InvariantCulture) ?? "").Append(',')
               .Append(Esc(r.Name)).Append(',')
               .Append(Esc(r.Description)).Append(',')
@@ -474,9 +491,9 @@ public sealed class SecsGemIdGeneratorService
               .Append(Esc(r.MinValue)).Append(',')
               .Append(Esc(r.MaxValue)).Append(',')
               .Append(Esc(r.SemiStandard)).Append(',')
-              .Append(Esc(r.Subsystem)).Append(',')
               .Append(r.ReportableInDvvalList ? "true" : "false").Append(',')
-              .AppendLine(Esc(r.Notes));
+              .Append(Esc(r.Notes)).Append(',')
+              .AppendLine(Esc(r.AlarmCode));
         }
         return sb.ToString();
 

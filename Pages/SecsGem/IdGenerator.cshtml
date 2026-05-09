@@ -94,15 +94,16 @@
     <div class="table-responsive" style="max-height:60vh;">
       <table class="table table-sm table-striped">
         <thead><tr>
-          <th>IdType</th><th>IdNumber</th><th>Name</th><th>Description</th>
+          <th>Subsystem</th><th>IdType</th><th>IdNumber</th><th>Name</th><th>Description</th>
           <th>DataType</th><th>Units</th><th>DefaultValue</th>
           <th>MinValue</th><th>MaxValue</th><th>SemiStandard</th>
-          <th>Subsystem</th><th>ReportableInDvvalList</th><th>Notes</th>
+          <th>ReportableInDvvalList</th><th>Notes</th><th>AlarmCode</th>
         </tr></thead>
         <tbody>
         @foreach (var r in Model.Preview)
         {
           <tr>
+            <td>@r.Subsystem</td>
             <td>@r.IdType</td>
             <td>@r.IdNumber</td>
             <td><code>@r.Name</code></td>
@@ -113,9 +114,9 @@
             <td>@r.MinValue</td>
             <td>@r.MaxValue</td>
             <td>@r.SemiStandard</td>
-            <td>@r.Subsystem</td>
             <td>@(r.ReportableInDvvalList ? "true" : "false")</td>
             <td>@r.Notes</td>
+            <td>@r.AlarmCode</td>
           </tr>
         }
         </tbody>

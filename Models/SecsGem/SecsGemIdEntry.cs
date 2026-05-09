@@ -29,5 +29,6 @@ public sealed class SecsGemIdEntry
     public string Subsystem     { get; set; } = "";   // System, EFEM, LP1, PM1, ChemDelivery, ...
     public string Notes         { get; set; } = "";
     public bool   ReportableInDvvalList { get; set; } // true if it can appear in S6F11 DVVAL list of a CEID
+    public string AlarmCode     { get; set; } = "";   // E30 alarm category (e.g. EquipmentStatusWarning)
 }
 #endregion

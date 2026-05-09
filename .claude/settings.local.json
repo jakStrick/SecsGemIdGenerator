@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build *)",
+      "Bash(Select-String -Pattern \"error|Error|warning CS|succeeded|failed\")",
+      "Bash(Select-Object -First 20)"
+    ]
+  }
+}
