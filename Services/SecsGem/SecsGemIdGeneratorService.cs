@@ -1,6 +1,7 @@
 #region File: Services/SecsGem/SecsGemIdGeneratorService.cs
 using Solstice.SecsGem.Models;
 using System.Globalization;
+using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -488,6 +489,37 @@ public sealed class SecsGemIdGeneratorService
         }
     }
 
+    // -------- ZIP of three CSVs --------------------------------------------
+    // alarmiddocu.csv  → ALID rows
+    // CEIDdocu.csv     → CEID rows
+    // viddocu.csv      → everything else (SVID, ECID, DVID, RPTID, PRJobID, …)
+    public byte[] ToZipCsv(IEnumerable<SecsGemIdEntry> rows)
+    {
+        var bom  = new UTF8Encoding(true).GetPreamble();
+        var list = rows.ToList();
+
+        var alarms = list.Where(r => r.IdType == "ALID");
+        var ceids  = list.Where(r => r.IdType == "CEID");
+        var vids   = list.Where(r => r.IdType != "ALID" && r.IdType != "CEID");
+
+        using var ms = new MemoryStream();
+        using (var zip = new ZipArchive(ms, ZipArchiveMode.Create, leaveOpen: true))
+        {
+            void AddEntry(string fileName, IEnumerable<SecsGemIdEntry> entries)
+            {
+                var entry = zip.CreateEntry(fileName, CompressionLevel.Optimal);
+                using var stream = entry.Open();
+                stream.Write(bom);
+                stream.Write(Encoding.UTF8.GetBytes(ToCsv(entries)));
+            }
+
+            AddEntry("alarmiddocu.csv", alarms);
+            AddEntry("CEIDdocu.csv",    ceids);
+            AddEntry("viddocu.csv",     vids);
+        }
+        return ms.ToArray();
+    }
+
     // -------- JSON serialization --------------------------------------------
     // Grouped by IdType so the runtime framework can deserialize directly into
     // typed dictionaries (Dictionary<uint, SvidDef>, etc.) at startup.
@@ -530,5 +562,41 @@ public sealed class SecsGemIdGeneratorService
             Encoder                = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
         });
     }
+    // -------- Fill missing IDs --------------------------------------------------
+    // Finds every entry where IdNumber == null and assigns the next available ID
+    // in that type's range (max assigned + 1). Useful when new modules or hardware
+    // are added to the topology after initial generation.
+    public List<SecsGemIdEntry> FillMissingIds(IEnumerable<SecsGemIdEntry> entries)
+    {
+        var list = entries.ToList();
+
+        foreach (var grp in list.GroupBy(e => e.IdType))
+        {
+            var nullEntries = grp.Where(e => e.IdNumber == null).ToList();
+            if (nullEntries.Count == 0) continue;
+
+            uint next = grp.Where(e => e.IdNumber.HasValue)
+                        .Select(e => e.IdNumber!.Value)
+                        .DefaultIfEmpty(0u)
+                        .Max() + 1;
+
+            foreach (var entry in nullEntries)
+                entry.IdNumber = next++;
+        }
+
+        return list;
+    }
+
+    // -------- Clear all IDs -----------------------------------------------------
+    // Nulls every IdNumber so IDs can be fully regenerated from scratch using the
+    // current starting-position config. Returns the same entry list (names,
+    // descriptions, etc. are preserved).
+    public List<SecsGemIdEntry> ClearAllIds(IEnumerable<SecsGemIdEntry> entries)
+    {
+        var list = entries.ToList();
+        foreach (var e in list) e.IdNumber = null;
+        return list;
+    }
+
 }
 #endregion

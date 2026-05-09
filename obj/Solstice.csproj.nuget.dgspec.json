@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\dvdst\\Solstice\\Solstice.csproj": {}
+    "D:\\Projects\\Projects-2026\\classOneSecsGemIDGenerator\\SecsGemIDGenerator\\Solstice.csproj": {}
   },
   "projects": {
-    "C:\\Users\\dvdst\\Solstice\\Solstice.csproj": {
+    "D:\\Projects\\Projects-2026\\classOneSecsGemIDGenerator\\SecsGemIDGenerator\\Solstice.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\dvdst\\Solstice\\Solstice.csproj",
+        "projectUniqueName": "D:\\Projects\\Projects-2026\\classOneSecsGemIDGenerator\\SecsGemIDGenerator\\Solstice.csproj",
         "projectName": "Solstice",
-        "projectPath": "C:\\Users\\dvdst\\Solstice\\Solstice.csproj",
+        "projectPath": "D:\\Projects\\Projects-2026\\classOneSecsGemIDGenerator\\SecsGemIDGenerator\\Solstice.csproj",
         "packagesPath": "C:\\Users\\dvdst\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\dvdst\\Solstice\\obj\\",
+        "outputPath": "D:\\Projects\\Projects-2026\\classOneSecsGemIDGenerator\\SecsGemIDGenerator\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
