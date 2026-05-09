@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Solstice")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+316da1b83e09ca98c560bf58dc0cb29211ac4d11")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+716247722ed2e056122bbcfa0c239cfbcc102211")]
 [assembly: System.Reflection.AssemblyProductAttribute("Solstice")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Solstice")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
